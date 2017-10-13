@@ -4,8 +4,7 @@
 """
 @author: liding
 @license: Apache Licence 
-@contact: liding2016@ia.ac.cn
-@site: 
+@contact: liding2016@ia.ac.cn 
 @file: test.py
 @time: 2017/10/13 10:08
 """
