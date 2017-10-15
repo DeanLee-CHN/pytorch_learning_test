@@ -14,6 +14,7 @@ import torch
 from torch.autograd import Variable
 from torch import nn
 import torch.nn.functional as F
+import torch.optim as optim
 
 
 class Net(nn.Module):
@@ -39,9 +40,9 @@ class Net(nn.Module):
         return x
 
     def num_flat_featrues(self, x):
-        print (x.size())
-        size = x.size()[1, :]
-        print (size)
+        # print (x.size())
+        size = list(x.size()[1 :])
+        # print (size)
         num_features = 1
         for s in size:
             num_features *= s
@@ -49,4 +50,29 @@ class Net(nn.Module):
 
 
 net = Net()
-print net
+print (net)
+params = list(net.parameters())
+print (len(params))
+print (params[0].size())
+
+input_data = Variable(torch.rand(1, 1, 32, 32))
+# print (input_data)
+
+output = net(input_data)
+print (output)
+
+target = Variable(torch.arange(1, 11))
+criterion = nn.MSELoss()
+
+loss = criterion(output, target)
+print (loss)
+
+net.zero_grad()
+print ('conv1.bias.grad before backward: ', net.conv1.bias.grad)
+loss.backward()
+print ('conv1.bias.grad after backward: ', net.conv1.bias.grad)
+
+optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0001, nesterov=False)
+
+optimizer.zero_grad()
+optimizer.step()
