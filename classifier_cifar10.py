@@ -3,8 +3,8 @@
 
 """
 @author: liding
-@license: Apache Licence 
-@contact: liding2016@ia.ac.cn 
+@license: Apache Licence
+@contact: liding2016@ia.ac.cn
 @file: classifier_cifar10.py
 @time: 2017/10/16 9:33
 """
@@ -28,24 +28,44 @@ transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = torchvision.datasets.CIFAR10(root='/media/ld/cifar10/trainset', train=True, transform=transform,
-                                        download=True)
+trainset = torchvision.datasets.CIFAR10(
+    root='/media/ld/cifar10/trainset',
+    train=True,
+    transform=transform,
+    download=True)
 if not os.path.exists('/media/ld/cifar10/trainset'):
     os.mkdir('/media/ld/cifar10/trainset')
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle=True, num_workers=2)
+trainloader = torch.utils.data.DataLoader(
+    trainset, batch_size=4, shuffle=True, num_workers=2)
 
-testet = torchvision.datasets.CIFAR10(root='/media/ld/cifar10/testset', train=True, transform=transform,
-                                      download=True)
+testet = torchvision.datasets.CIFAR10(
+    root='/media/ld/cifar10/testset',
+    train=True,
+    transform=transform,
+    download=True)
 if not os.path.exists('/media/ld/cifar10/testset'):
     os.mkdir('/media/ld/cifar10/testset')
-testloader = torch.utils.data.DataLoader(testet, batch_size=4, shuffle=True, num_workers=2)
+testloader = torch.utils.data.DataLoader(
+    testet, batch_size=4, shuffle=True, num_workers=2)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+classes = (
+    'plane',
+    'car',
+    'bird',
+    'cat',
+    'deer',
+    'dog',
+    'frog',
+    'horse',
+    'ship',
+    'truck')
+
 
 class Net(nn.Module):
     """
     Define the structure of the neural network and the process of the forward-computing
     """
+
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(3, 6, (5, 5))
@@ -58,8 +78,8 @@ class Net(nn.Module):
 
     def forward(self, x):
         """
-        Write the process of forward_computing block by block 
-        :param x:input img 
+        Write the process of forward_computing block by block
+        :param x:input img
         :return: Final output of neural network
         """
         x = self.pool1(F.relu(self.conv1(x)))
@@ -72,6 +92,7 @@ class Net(nn.Module):
         x = self.fc3(x)
 
         return x
+
 
 net = Net()
 net.cuda()
@@ -99,7 +120,8 @@ for epoch in range(4):
         # print statistics
         running_loss += loss.data[0]
         if i % 1000 == 999:
-            print ('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 1000))
+            print ('[%d, %5d] loss: %.3f' %
+                   (epoch + 1, i + 1, running_loss / 1000))
             running_loss = 0.0
 
 print('Finished Training')
@@ -138,5 +160,10 @@ for data in testloader:
         class_total[current_label] += 1
 
 for i in range(10):
-    print ('Accuracy of %5s: %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
+    print (
+        'Accuracy of %5s: %2d %%' %
+        (classes[i],
+         100 *
+         class_correct[i] /
+         class_total[i]))
 # print ('Accuracy of the network on 10000 test images: %d %%' % (100 * correct / total))
