@@ -3,7 +3,7 @@
 
 """
 @author: liding
-@license: Apache Licence 
+@license: Apache Licence
 @contact: liding2016@ia.ac.cn
 @file: Transfer_learning.py
 @time: 2017/10/17 17:48
@@ -43,14 +43,26 @@ data_transform = {
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    }
+}
 
 data_dir = '/media/ld/hymenoptera_data/'
 # ImageFolder的文档要详查
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-                                           data_transform[x]) for x in ['train', 'val']}
-dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4, shuffle=True,
-                                              num_workers=4) for x in ['train', 'val']}
+image_datasets = {
+    x: datasets.ImageFolder(
+        os.path.join(
+            data_dir,
+            x),
+        data_transform[x]) for x in [
+        'train',
+        'val']}
+dataloaders = {
+    x: torch.utils.data.DataLoader(
+        image_datasets[x],
+        batch_size=4,
+        shuffle=True,
+        num_workers=4) for x in [
+            'train',
+        'val']}
 dataset_size = {x: len(image_datasets[x]) for x in ['train', 'val']}
 class_names = image_datasets['train'].classes
 
@@ -78,10 +90,12 @@ use_gpu = torch.cuda.is_available()
 # out = torchvision.utils.make_grid(inputs)
 # # imshow(inputs, title=[class_names[x] for x in classes])
 
+
 def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
     since = time.time()
 
-    best_model_wts = model.state_dict() # .stade_dict()：Seeking the weights of the network?
+    # .stade_dict()：Seeking the weights of the network?
+    best_model_wts = model.state_dict()
     best_acc = 0.0
 
     print (model)
@@ -93,7 +107,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
             if phase == 'train':
                 # scheduler???Check the doc
                 scheduler.step()
-                model.train(True)   #set the model to training mode
+                model.train(True)  # set the model to training mode
             if phase == 'val':
                 model.train(False)
 
@@ -103,7 +117,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
             for data in dataloaders[phase]:
                 inputs, labels = data
                 if use_gpu:
-                    inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
+                    inputs, labels = Variable(
+                        inputs.cuda()), Variable(
+                        labels.cuda())
                 else:
                     inputs, labels = Variable(inputs), Variable(labels)
 
@@ -113,7 +129,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
                 outputs = model(inputs)
                 _, preds = torch.max(outputs.data, 1)
                 loss = criterion(outputs, labels)
-                if phase =='train':
+                if phase == 'train':
                     loss.backward()
                     optimizer.step()
 
@@ -123,7 +139,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
             epoch_loss = running_loss / dataset_size[phase]
             epoch_acc = running_correct / dataset_size[phase]
 
-            print ('{} loss: {:.4f}  Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+            print (
+                '{} loss: {:.4f}  Acc: {:.4f}'.format(
+                    phase, epoch_loss, epoch_acc))
 
             # Copy to update the best_wts
             if phase == 'train' and epoch_acc >= best_acc:
@@ -131,10 +149,17 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
                 best_model_wts = model.state_dict()
 
     time_elapsed = time.time() - since
-    print ('Training Acomplished in {:.0f}h{:.0f}m{:.0f}s'.format(time_elapsed//3600,
-                                                                  time_elapsed//60, time_elapsed % 60))
+    print (
+        'Training Acomplished in {:.0f}h{:.0f}m{:.0f}s'.format(
+            time_elapsed //
+            3600,
+            time_elapsed //
+            60,
+            time_elapsed %
+            60))
     model.load_state_dict(best_model_wts)
     return model
+
 
 def visualize_model(model, num_imges=6):
     current_images = 0
@@ -152,13 +177,14 @@ def visualize_model(model, num_imges=6):
 
         for j in range(inputs.size()[0]):
             current_images += 1
-            ax = plt.subplot(num_imges//2, 2, current_images)
+            ax = plt.subplot(num_imges // 2, 2, current_images)
             ax.axis('off')
             ax.set_title('predicted: {}'.format(classes[predited[j]]))
             imshow(inputs.cpu().data[j])
 
             if current_images == num_imges:
                 return
+
 
 model_fit = models.resnet18(pretrained=True)
 # print (model_fit)
@@ -174,7 +200,9 @@ optimizer_fit = optim.SGD(model_fit.parameters(), lr=0.001, momentum=0.9)
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_fit, step_size=7, gamma=0.1)
 
-model_fit = train_model(model_fit, criterion_fit, optimizer_fit, exp_lr_scheduler, num_epoch=1)
-
-
-
+model_fit = train_model(
+    model_fit,
+    criterion_fit,
+    optimizer_fit,
+    exp_lr_scheduler,
+    num_epoch=1)
