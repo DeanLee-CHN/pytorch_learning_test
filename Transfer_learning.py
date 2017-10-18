@@ -5,7 +5,6 @@
 @author: liding
 @license: Apache Licence 
 @contact: liding2016@ia.ac.cn
-@site: 
 @file: Transfer_learning.py
 @time: 2017/10/17 17:48
 """
