@@ -32,13 +32,13 @@ Just normalize for validation
 """
 data_transform = {
     'train': transforms.Compose([
-        transforms.RandomCrop(224),
+        transforms.RandomCrop(224, 224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'val': transforms.Compose([
-        transforms.RandomCrop(256),
+        transforms.RandomCrop(256, 256),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -91,7 +91,7 @@ use_gpu = torch.cuda.is_available()
 # # imshow(inputs, title=[class_names[x] for x in classes])
 
 
-def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
+def train_model(model, criterion, optimizer, scheduler, num_epoch):
     since = time.time()
 
     # .stade_dict()：Seeking the weights of the network?
@@ -100,7 +100,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
 
     print (model)
     for epoch in range(num_epoch):
-        print ('Epoch {}/{}'.format(epoch, num_epoch - 1))
+        print ('Epoch {}/{}'.format(epoch + 1, num_epoch))
         print ('-' * 10)
 
         for phase in ['train', 'val']:
@@ -140,7 +140,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch=1):
             epoch_acc = running_correct / dataset_size[phase]
 
             print (
-                '{} loss: {:.4f}  Acc: {:.4f}'.format(
+                '{} loss: {}  Acc: {}'.format(
                     phase, epoch_loss, epoch_acc))
 
             # Copy to update the best_wts
@@ -205,4 +205,4 @@ model_fit = train_model(
     criterion_fit,
     optimizer_fit,
     exp_lr_scheduler,
-    num_epoch=1)
+    num_epoch=100)
