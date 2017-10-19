@@ -32,13 +32,14 @@ Just normalize for validation
 """
 data_transform = {
     'train': transforms.Compose([
-        transforms.RandomCrop(224, 224),
+        transforms.RandomSizedCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'val': transforms.Compose([
-        transforms.RandomCrop(256, 256),
+        transforms.Scale(256),
+        transforms.CenterCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -98,7 +99,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch):
     best_model_wts = model.state_dict()
     best_acc = 0.0
 
-    print (model)
+    # print (model)
     for epoch in range(num_epoch):
         print ('Epoch {}/{}'.format(epoch + 1, num_epoch))
         print ('-' * 10)
@@ -137,11 +138,15 @@ def train_model(model, criterion, optimizer, scheduler, num_epoch):
                 running_correct += torch.sum(preds == labels.data)
 
             epoch_loss = running_loss / dataset_size[phase]
-            epoch_acc = running_correct / dataset_size[phase]
+            epoch_loss = float(epoch_loss.data.cpu().numpy()[0])
+            # print ('loss type:', type(epoch_loss))
+            epoch_acc = 100 * float(running_correct / dataset_size[phase])
 
             print (
-                '{} loss: {}  Acc: {}'.format(
+                '{} loss: {:.2}  Acc: {:.4}%'.format(
                     phase, epoch_loss, epoch_acc))
+            # print (type(epoch_loss), type(epoch_acc))
+            # print (type(epoch_loss))
 
             # Copy to update the best_wts
             if phase == 'train' and epoch_acc >= best_acc:
@@ -205,4 +210,4 @@ model_fit = train_model(
     criterion_fit,
     optimizer_fit,
     exp_lr_scheduler,
-    num_epoch=100)
+    num_epoch=30)
