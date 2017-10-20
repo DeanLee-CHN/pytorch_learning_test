@@ -17,11 +17,14 @@ import torchvision
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.autograd import Variable
+import torch.nn.functional as F
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 import time
 import os
 import torch.nn as nn
+import matplotlib
+matplotlib.use('Agg')
 
 plt.ion()   # iterative mode
 
@@ -66,30 +69,33 @@ dataloaders = {
         'val']}
 dataset_size = {x: len(image_datasets[x]) for x in ['train', 'val']}
 class_names = image_datasets['train'].classes
-
+print (class_names)
 use_gpu = torch.cuda.is_available()
 
-# def imshow(inp, title = None):
-#     # Imshow for tensor
-#
-#     inp = inp.numpy().transpose((1, 2, 0))
-#     # mean = np.array([0.485, 0.456, 0.406])
-#     # std = np.array([0.229, 0.224, 0.225])
-#     mean = np.array([1, 0.485, 0.456, 0.406])
-#     std = np.array([1, 0.229, 0.224, 0.225])
-#     inp = std * inp + mean
-#     plt.imshow(inp)
-#     if title is not None:
-#         plt.title(title)
-#     plt.pause(0.001)
-#
-# # Get a batch of training data
-# inputs, classes = next(iter(dataloaders['train']))
+
+def imshow(inp, title = None):
+    # Imshow for tensor
+    for i in range(inputs.shape[0]):
+        inp = inp[i, :].numpy().transpose((1, 2, 0))
+        print (inp.shape)
+        mean = np.array([0.485, 0.456, 0.406])
+        std = np.array([0.229, 0.224, 0.225])
+
+        inp = std * inp + mean
+        print (inp.shape, type(inp))
+        plt.imshow(inp)
+        if title is not None:
+            plt.title(title)
+        plt.pause(0.001)
+
+# Get a batch of training data
+inputs, classes = next(iter(dataloaders['train']))
+
 # print (inputs.shape, classes.shape)
-#
-# # Make a grid from batch
-# out = torchvision.utils.make_grid(inputs)
-# # imshow(inputs, title=[class_names[x] for x in classes])
+
+# Make a grid from batch
+out = torchvision.utils.make_grid(inputs)
+# imshow(inputs, title=[class_names[x] for x in classes.numpy()])
 
 
 def train_model(model, criterion, optimizer, scheduler, num_epoch):
@@ -190,9 +196,8 @@ def visualize_model(model, num_imges=6):
             if current_images == num_imges:
                 return
 
-
+# Do fine-tuning
 model_fit = models.resnet18(pretrained=True)
-# print (model_fit)
 # ???
 num_ftrs = model_fit.fc.in_features
 model_fit.fc = nn.Linear(num_ftrs, 2)
@@ -203,11 +208,34 @@ criterion_fit = torch.nn.CrossEntropyLoss()
 optimizer_fit = optim.SGD(model_fit.parameters(), lr=0.001, momentum=0.9)
 
 # Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_fit, step_size=7, gamma=0.1)
+exp_lr_scheduler_fit = lr_scheduler.StepLR(optimizer_fit, step_size=7, gamma=0.1)
 
-model_fit = train_model(
-    model_fit,
-    criterion_fit,
-    optimizer_fit,
-    exp_lr_scheduler,
+# Treat the pretrained model as feature extractor
+model_conv = torchvision.models.resnet18(pretrained=True)
+for para in model_conv.parameters():
+    para.requires_grad = False
+
+num_ftrs = model_conv.fc.in_features
+print (num_ftrs)
+model_conv.fc = nn.Linear(num_ftrs, 2)
+
+if use_gpu:
+    model_conv = model_conv.cuda()
+criterion_conv = torch.nn.CrossEntropyLoss()
+optimizer_conv = torch.optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
+exp_lr_scheduler_conv = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
+
+
+# model_fit = train_model(
+#     model_fit,
+#     criterion_fit,
+#     optimizer_fit,
+#     exp_lr_scheduler,
+#     num_epoch=30)
+
+model_cov = train_model(
+    model_conv,
+    criterion_conv,
+    optimizer_conv,
+    exp_lr_scheduler_conv,
     num_epoch=30)
